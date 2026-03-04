@@ -5,7 +5,22 @@ All notable changes to Htech are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [1.4.0] - March 4, 2026
 
+### Added
+- **Forced Authentication:** App clears all cached sessions on load, requiring
+  users to explicitly sign in or sign up before accessing any feature. This
+  ensures data is only stored when the user is authenticated.
+
+### Changed
+- `AuthContext` now automatically signs out any existing session on app
+  initialization, preventing auto-login from browser session storage.
+
+### Technical Details
+- `src/contexts/AuthContext.tsx` calls `supabase.auth.signOut()` during `useEffect`
+  init if a session is detected.
+
+---
 ## [1.3.0] - March 4, 2026
 
 ### Added

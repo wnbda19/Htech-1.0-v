@@ -22,14 +22,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
+        // On page load we deliberately clear any existing session so that
+        // the user must sign in/up every time. Without this, Supabase will
+        // silently restore the previous session and the app jumps straight
+        // into the dashboard, which the user requested to avoid.
+        (async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                await supabase.auth.signOut();
+            }
+            setSession(null);
+            setUser(null);
             setIsLoading(false);
-        });
+        })();
 
-        // Listen for changes
+        // Listen for further auth changes (e.g. after login)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
             setUser(session?.user ?? null);

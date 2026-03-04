@@ -237,6 +237,22 @@ refreshing or leaving the page.
 
 ---
 
+## 🔐 Session & Authentication Requirements
+
+### Session Behavior
+- On every app load, any existing browser session is automatically cleared.
+- Users **must** authenticate via sign-up or sign-in before accessing the app.
+- No data is stored or accessible without explicit authentication.
+- Sessions are managed by Supabase Auth; logout clears the session token.
+
+### Security Implications
+- Row-Level Security (RLS) policies ensure each caregiver sees only their own
+  patients and readings.
+- Each reading in the database is linked to the authenticated user's ID.
+- Patient data (phone, diabetes type) is stored against the caregiver's account.
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
