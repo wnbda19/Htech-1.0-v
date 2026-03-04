@@ -125,6 +125,105 @@ INSERT INTO caregiver_readings (patient_id, value, timestamp) VALUES
 ('patient_001', 175, NOW() - INTERVAL '1 day - 3 hours'),
 ('patient_001', 145, NOW() - INTERVAL '1 day - 2 hours');
 
+-- ============================================
+-- ADDITIONAL EXAMPLE PATIENTS (6-10)
+-- ============================================
+
+-- Patient 6: Sarah Al-Rashid
+INSERT INTO caregiver_patients (id, caregiver_id, name, phone, diabetes_type, created_at)
+VALUES (
+  'patient_006',
+  '00000000-0000-0000-0000-000000000001',
+  'Sarah Al-Rashid',
+  '+966501234572',
+  'TYPE_1',
+  NOW() - INTERVAL '25 days'
+);
+
+-- Patient 7: Hassan Abdul Rahman
+INSERT INTO caregiver_patients (id, caregiver_id, name, phone, diabetes_type, created_at)
+VALUES (
+  'patient_007',
+  '00000000-0000-0000-0000-000000000001',
+  'Hassan Abdul Rahman',
+  '+966501234573',
+  'TYPE_2',
+  NOW() - INTERVAL '35 days'
+);
+
+-- Patient 8: Noor Mohammed
+INSERT INTO caregiver_patients (id, caregiver_id, name, phone, diabetes_type, created_at)
+VALUES (
+  'patient_008',
+  '00000000-0000-0000-0000-000000000001',
+  'Noor Mohammed',
+  '+966501234574',
+  'TYPE_2',
+  NOW() - INTERVAL '10 days'
+);
+
+-- Patient 9: Ali Hassan
+INSERT INTO caregiver_patients (id, caregiver_id, name, phone, diabetes_type, created_at)
+VALUES (
+  'patient_009',
+  '00000000-0000-0000-0000-000000000001',
+  'Ali Hassan',
+  '+966501234575',
+  'TYPE_1',
+  NOW() - INTERVAL '40 days'
+);
+
+-- Patient 10: Mona Abdullah
+INSERT INTO caregiver_patients (id, caregiver_id, name, phone, diabetes_type, created_at)
+VALUES (
+  'patient_010',
+  '00000000-0000-0000-0000-000000000001',
+  'Mona Abdullah',
+  '+966501234576',
+  'TYPE_2',
+  NOW() - INTERVAL '5 days'
+);
+
+-- Glucose readings for Patient 6 (Sarah Al-Rashid) - Type 1 - Normal
+INSERT INTO caregiver_readings (patient_id, value, timestamp) VALUES
+('patient_006', 100, NOW() - INTERVAL '5 hours'),
+('patient_006', 140, NOW() - INTERVAL '4 hours'),
+('patient_006', 112, NOW() - INTERVAL '3 hours'),
+('patient_006', 155, NOW() - INTERVAL '2 hours'),
+('patient_006', 135, NOW());
+
+-- Glucose readings for Patient 7 (Hassan Abdul Rahman) - Type 2 - Warning
+INSERT INTO caregiver_readings (patient_id, value, timestamp) VALUES
+('patient_007', 125, NOW() - INTERVAL '5 hours'),
+('patient_007', 165, NOW() - INTERVAL '4 hours'),
+('patient_007', 180, NOW() - INTERVAL '3 hours'),
+('patient_007', 175, NOW() - INTERVAL '2 hours'),
+('patient_007', 168, NOW());
+
+-- Glucose readings for Patient 8 (Noor Mohammed) - Type 2 - Normal
+INSERT INTO caregiver_readings (patient_id, value, timestamp) VALUES
+('patient_008', 95, NOW() - INTERVAL '4 hours'),
+('patient_008', 130, NOW() - INTERVAL '3 hours'),
+('patient_008', 125, NOW() - INTERVAL '2 hours'),
+('patient_008', 138, NOW());
+
+-- Glucose readings for Patient 9 (Ali Hassan) - Type 1 - Excellent
+INSERT INTO caregiver_readings (patient_id, value, timestamp) VALUES
+('patient_009', 88, NOW() - INTERVAL '6 hours'),
+('patient_009', 125, NOW() - INTERVAL '5 hours'),
+('patient_009', 108, NOW() - INTERVAL '4 hours'),
+('patient_009', 145, NOW() - INTERVAL '3 hours'),
+('patient_009', 120, NOW() - INTERVAL '2 hours'),
+('patient_009', 110, NOW());
+
+-- Glucose readings for Patient 10 (Mona Abdullah) - Type 2 - Critical
+INSERT INTO caregiver_readings (patient_id, value, timestamp) VALUES
+('patient_010', 145, NOW() - INTERVAL '5 hours'),
+('patient_010', 195, NOW() - INTERVAL '4 hours'),
+('patient_010', 215, NOW() - INTERVAL '3 hours'),
+('patient_010', 225, NOW() - INTERVAL '2 hours'),
+('patient_010', 240, NOW());
+
 -- Glucose reading reference ranges:
 -- Type 1 & Type 2 Diabetes:
 --   Fasting (before breakfast): 80-130 mg/dL (ideal)
