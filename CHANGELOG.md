@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.0] - March 4, 2026
+
+### Added
+- **Persistent storage:** All patients/readings saved in Supabase tables.
+  Data is fetched on page load and after every 30 sec so the UI state survives
+  refreshes and navigation.
+- New Supabase schema tables (`caregiver_patients` and `caregiver_readings`) and
+  associated RLS policies. Existing `profiles`/`readings` continue to be used.
+
+### Changed
+- Caregiver page now synchronizes additions/reads with the database using the
+  same status/average logic previously used in memory.
+- Reading updates for real users are also stored in Supabase now.
+- Documentation updated with chapters on persistence.
+
+### Technical Details
+- Data fetching moved inside `useEffect` in `src/pages/CaregiverPage.tsx`.
+- Added async inserts to Supabase on patient creation and reading save.
+
 ## [1.2.0] - March 4, 2026
 
 ### Added

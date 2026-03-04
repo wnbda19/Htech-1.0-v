@@ -200,6 +200,43 @@ const { t, language, setLanguage } = useLanguage();
 
 ---
 
+## 📦 Data Persistence & Supabase Tables
+
+All patient and reading data is stored in Supabase so that nothing is lost when
+navigating between pages or refreshing the browser. The existing status
+calculations, thresholds, and UI logic remain unchanged—they simply operate on
+state that is hydrated from the database.
+
+### Key Tables
+
+- `profiles` – standard Supabase auth profiles (real users)
+- `readings` – glucose readings linked to `profiles` by `user_id`
+- `caregiver_patients` – mock patients created by caregivers, keyed by text ID
+- `caregiver_readings` – readings for those mock patients
+
+### How it works
+
+1. **Fetching:** on app load (and every 30 s) the app queries all relevant
+   tables and reconstructs the in‑memory patient list.
+2. **Saving:** when a caregiver adds a patient or a reading, an insert is made
+to the corresponding table immediately.
+3. **Status logic:** unchanged from before; averages and color codes are
+recomputed on the client using the fetched data.
+
+### Development Notes
+
+- Supabase RLS policies are configured in `supabase/schema.sql` (look for the
+  `caregiver_*` tables).
+- No additional UI components were added – persistence is entirely behind the
+scenes in `src/pages/CaregiverPage.tsx`.
+- To test locally, make sure your `.env.local` points to a valid Supabase
+  project and run the provided migrations (see `supabase/schema.sql`).
+
+Persistence ensures a seamless experience: changes remain visible after
+refreshing or leaving the page.
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites

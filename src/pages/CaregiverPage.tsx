@@ -18,7 +18,7 @@ interface PatientRecord {
     readonly nameAr: string;
     readonly lastValue: number | null;
     readonly lastTimestamp: string | null;
-    readonly diabetesType: 'TYPE_1' | 'TYPE_2';
+    readonly diabetesType: 'TYPE_1' | 'TYPE_2' | 'GESTATIONAL';
     readonly readings7d: number;
     readonly averageGlucose: number | null;
 }
@@ -51,21 +51,86 @@ export function CaregiverPage() {
     const { user, signOut } = useAuth();
     const [showAddPatient, setShowAddPatient] = useState(false);
     const [patientNameInput, setPatientNameInput] = useState('');
+    const [patientIdInput, setPatientIdInput] = useState('');
     const [patientPhoneInput, setPatientPhoneInput] = useState('');
+    const [patientDiabetesTypeInput, setPatientDiabetesTypeInput] = useState<'TYPE_1' | 'TYPE_2' | 'GESTATIONAL'>('TYPE_2');
     const [addedPatients, setAddedPatients] = useState<PatientRecord[]>([]);
     const [showPatientSuccess, setShowPatientSuccess] = useState(false);
     const [showPatientError, setShowPatientError] = useState(false);
+    const [patientErrorMsg, setPatientErrorMsg] = useState('');
 
     const [realPatients, setRealPatients] = useState<PatientRecord[]>([]);
 
-    // Toggle whether the current user is shown in the dashboard list
-    const [isCaregiverMode, setIsCaregiverMode] = useState(() => {
-        return localStorage.getItem('caregiverMode') === 'true';
-    });
+    // Reading input state
+    const [showAddReading, setShowAddReading] = useState(false);
+    const [readingValueInput, setReadingValueInput] = useState('');
+    const [activePatientId, setActivePatientId] = useState<string | null>(null);
 
-    useEffect(() => {
-        localStorage.setItem('caregiverMode', String(isCaregiverMode));
-    }, [isCaregiverMode]);
+    function updatePatientReading(id: string, value: number) {
+        const now = new Date().toISOString();
+        setRealPatients((prev) =>
+            prev.map((p) => {
+                if (p.id !== id) return p;
+                const readings7d = p.readings7d + 1;
+                const avg = p.averageGlucose !== null
+                    ? Math.round((p.averageGlucose * (p.readings7d || 0) + value) / readings7d)
+                    : value;
+                return {
+                    ...p,
+                    lastValue: value,
+                    lastTimestamp: now,
+                    readings7d,
+                    averageGlucose: avg,
+                };
+            })
+        );
+        setAddedPatients((prev) =>
+            prev.map((p) => {
+                if (p.id !== id) return p;
+                const readings7d = p.readings7d + 1;
+                const avg = p.averageGlucose !== null
+                    ? Math.round((p.averageGlucose * (p.readings7d || 0) + value) / readings7d)
+                    : value;
+                return {
+                    ...p,
+                    lastValue: value,
+                    lastTimestamp: now,
+                    readings7d,
+                    averageGlucose: avg,
+                };
+            })
+        );
+
+        // Save reading to Supabase for caregivers' patients or real profiles
+        const isAddedPatient = addedPatients.some(p => p.id === id);
+        (async () => {
+            try {
+                if (isAddedPatient) {
+                    await supabase
+                        .from('caregiver_readings')
+                        .insert({
+                            patient_id: id,
+                            value,
+                            timestamp: now,
+                        });
+                } else {
+                    // treat as real profile reading
+                    await supabase
+                        .from('readings')
+                        .insert({
+                            user_id: id,
+                            value,
+                            timestamp: now,
+                        });
+                }
+            } catch (err) {
+                console.error('Error saving reading:', err);
+            }
+        })();
+    }
+
+    // Toggle whether the current user is shown in the dashboard list
+    // mode toggle removed; always show caregiver dashboard
 
     useEffect(() => {
         const fetchAllPatients = async () => {
@@ -117,6 +182,58 @@ export function CaregiverPage() {
             });
 
             setRealPatients(fetchedPatients);
+
+            // Fetch caregivers' mock patients
+            if (user) {
+                const { data: caregiverPatients, error: caregiverErr } = await supabase
+                    .from('caregiver_patients')
+                    .select('*')
+                    .eq('caregiver_id', user.id);
+                
+                if (caregiverErr) {
+                    console.error('Error fetching caregiver patients:', caregiverErr);
+                    return;
+                }
+
+                if (caregiverPatients && caregiverPatients.length > 0) {
+                    const { data: caregiverReadings, error: readErr } = await supabase
+                        .from('caregiver_readings')
+                        .select('*');
+                    
+                    if (readErr) {
+                        console.error('Error fetching caregiver readings:', readErr);
+                        return;
+                    }
+
+                    const addedPatientsData: PatientRecord[] = (caregiverPatients || []).map((pat: any) => {
+                        const patReadings = (caregiverReadings || [])
+                            .filter((r: any) => r.patient_id === pat.id)
+                            .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+                        const latestReading = patReadings[0];
+                        const readings7d = patReadings.filter((r: any) => new Date(r.timestamp).getTime() >= sevenDaysAgo);
+
+                        let avg = null;
+                        if (readings7d.length > 0) {
+                            const sum = readings7d.reduce((acc: number, curr: any) => acc + curr.value, 0);
+                            avg = Math.round(sum / readings7d.length);
+                        }
+
+                        return {
+                            id: pat.id,
+                            nameEn: pat.name,
+                            nameAr: pat.name,
+                            lastValue: latestReading ? latestReading.value : null,
+                            lastTimestamp: latestReading ? latestReading.timestamp : null,
+                            diabetesType: pat.diabetes_type || 'TYPE_2',
+                            readings7d: readings7d.length,
+                            averageGlucose: avg,
+                        };
+                    });
+
+                    setAddedPatients(addedPatientsData);
+                }
+            }
         };
 
         fetchAllPatients();
@@ -124,16 +241,16 @@ export function CaregiverPage() {
         // Polling every 30 seconds for live updates
         const interval = setInterval(fetchAllPatients, 30000);
         return () => clearInterval(interval);
-    }, []);
+    }, [user]);
 
     // Build patient list from actual data
     const patients: PatientRecord[] = useMemo(() => {
         const all = [...addedPatients, ...realPatients];
-        if (isCaregiverMode && user) {
+        if (user) {
             return all.filter((p) => p.id !== user.id);
         }
         return all;
-    }, [realPatients, addedPatients, isCaregiverMode, user]);
+    }, [realPatients, addedPatients, user]);
 
     const criticalCount = patients.filter(
         (p) => getPatientStatus(p.lastValue) === 'critical',
@@ -172,13 +289,7 @@ export function CaregiverPage() {
                 >
                     {t('caregiver_info')}
                 </p>
-                <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setIsCaregiverMode(!isCaregiverMode)}
-                >
-                    {isCaregiverMode ? '👁️ Caregiver Mode' : '👤 Patient Mode'}
-                </Button>
+
             </div>
 
             {/* ── Overview Stats ───────────────────── */}
@@ -422,6 +533,21 @@ export function CaregiverPage() {
                                     🕐 {timeAgo(patient.lastTimestamp, t)}
                                 </p>
                             )}
+
+                            {/* Add Reading Action */}
+                            <div style={{ marginTop: '12px', textAlign: 'right' }}>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setActivePatientId(patient.id);
+                                        setReadingValueInput('');
+                                        setShowAddReading(true);
+                                    }}
+                                >
+                                    ➕ {t('add_reading')}
+                                </Button>
+                            </div>
                         </Card>
                     );
                 })}
@@ -495,6 +621,85 @@ export function CaregiverPage() {
                         />
                     </div>
 
+                    {/* Patient ID Input */}
+                    <div style={{ marginBottom: '12px' }}>
+                        <label
+                            style={{
+                                display: 'block',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                color: '#94a3b8',
+                                marginBottom: '6px',
+                            }}
+                        >
+                            🆔 Patient ID (Unique)
+                        </label>
+                        <input
+                            id="patient-id-input"
+                            value={patientIdInput}
+                            onChange={(e) => {
+                                setPatientIdInput(e.target.value.toUpperCase());
+                                setShowPatientError(false);
+                            }}
+                            placeholder="e.g., P001, P002"
+                            style={{
+                                background: 'rgba(15, 22, 41, 0.8)',
+                                borderRadius: '12px',
+                            }}
+                        />
+                    </div>
+
+                    {/* Diabetes Type Selection */}
+                    <div style={{ marginBottom: '12px' }}>
+                        <label
+                            style={{
+                                display: 'block',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                color: '#94a3b8',
+                                marginBottom: '6px',
+                            }}
+                        >
+                            🩺 Diabetes Type
+                        </label>
+                        <div
+                            style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(3, 1fr)',
+                                gap: '8px',
+                            }}
+                        >
+                            {(['TYPE_1', 'TYPE_2', 'GESTATIONAL'] as const).map((type) => (
+                                <button
+                                    key={type}
+                                    onClick={() => {
+                                        setPatientDiabetesTypeInput(type);
+                                        setShowPatientError(false);
+                                    }}
+                                    style={{
+                                        padding: '10px 8px',
+                                        borderRadius: '8px',
+                                        border: patientDiabetesTypeInput === type
+                                            ? '2px solid #00d4aa'
+                                            : '1px solid #334155',
+                                        background: patientDiabetesTypeInput === type
+                                            ? 'rgba(0, 212, 170, 0.1)'
+                                            : 'rgba(15, 22, 41, 0.8)',
+                                        color: patientDiabetesTypeInput === type ? '#00d4aa' : '#94a3b8',
+                                        fontSize: '11px',
+                                        fontWeight: patientDiabetesTypeInput === type ? 600 : 400,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                    }}
+                                >
+                                    {type === 'TYPE_1' && 'Type 1'}
+                                    {type === 'TYPE_2' && 'Type 2'}
+                                    {type === 'GESTATIONAL' && 'Gestational'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Phone Number Input */}
                     <div style={{ marginBottom: '16px' }}>
                         <label
@@ -536,7 +741,7 @@ export function CaregiverPage() {
                                 textAlign: 'center',
                             }}
                         >
-                            ⚠️ {t('fill_all_fields')}
+                            ⚠️ {patientErrorMsg || t('fill_all_fields')}
                         </p>
                     )}
 
@@ -559,26 +764,59 @@ export function CaregiverPage() {
                             size="sm"
                             fullWidth
                             onClick={() => {
-                                if (!patientNameInput.trim() || !patientPhoneInput.trim()) {
+                                if (!patientNameInput.trim() || !patientIdInput.trim() || !patientPhoneInput.trim()) {
+                                    setPatientErrorMsg('All fields required');
+                                    setShowPatientError(true);
+                                    return;
+                                }
+                                // Check for duplicate patient ID
+                                const isDuplicate = [...addedPatients, ...realPatients].some(
+                                    (p) => p.id === patientIdInput.trim()
+                                );
+                                if (isDuplicate) {
+                                    setPatientErrorMsg('Patient ID already exists');
                                     setShowPatientError(true);
                                     return;
                                 }
                                 // Add the new patient
                                 const newPatient: PatientRecord = {
-                                    id: crypto.randomUUID(),
+                                    id: patientIdInput.trim(),
                                     nameEn: patientNameInput.trim(),
                                     nameAr: patientNameInput.trim(),
                                     lastValue: null,
                                     lastTimestamp: null,
-                                    diabetesType: 'TYPE_2',
+                                    diabetesType: patientDiabetesTypeInput,
                                     readings7d: 0,
                                     averageGlucose: null,
                                 };
+                                
+                                // Save to Supabase
+                                if (user) {
+                                    (async () => {
+                                        try {
+                                            await supabase
+                                                .from('caregiver_patients')
+                                                .insert({
+                                                    id: patientIdInput.trim(),
+                                                    caregiver_id: user.id,
+                                                    name: patientNameInput.trim(),
+                                                    phone: patientPhoneInput.trim(),
+                                                    diabetes_type: patientDiabetesTypeInput,
+                                                });
+                                        } catch (err: any) {
+                                            console.error('Error saving patient:', err);
+                                        }
+                                    })();
+                                }
+                                
                                 setAddedPatients((prev) => [...prev, newPatient]);
                                 setPatientNameInput('');
+                                setPatientIdInput('');
                                 setPatientPhoneInput('');
+                                setPatientDiabetesTypeInput('TYPE_2');
                                 setShowAddPatient(false);
                                 setShowPatientError(false);
+                                setPatientErrorMsg('');
                                 setShowPatientSuccess(true);
                                 setTimeout(() => setShowPatientSuccess(false), 3000);
                             }}
@@ -597,6 +835,81 @@ export function CaregiverPage() {
             >
                 ➕ {t('add_patient')}
             </Button>
+
+            {/* Add Reading Modal */}
+            {showAddReading && activePatientId && (
+                <Card
+                    style={{
+                        marginTop: '16px',
+                        animation: 'scaleIn 0.3s ease',
+                    }}
+                >
+                    <h3
+                        style={{
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            marginBottom: '16px',
+                            color: '#e2e8f0',
+                        }}
+                    >
+                        {t('add_reading')}
+                    </h3>
+
+                    <div style={{ marginBottom: '12px' }}>
+                        <label
+                            style={{
+                                display: 'block',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                color: '#94a3b8',
+                                marginBottom: '6px',
+                            }}
+                        >
+                            📈 {t('reading_value')}
+                        </label>
+                        <input
+                            type="number"
+                            value={readingValueInput}
+                            onChange={(e) => setReadingValueInput(e.target.value)}
+                            placeholder={t('enter_reading')}
+                            style={{
+                                background: 'rgba(15, 22, 41, 0.8)',
+                                borderRadius: '12px',
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            fullWidth
+                            onClick={() => {
+                                setShowAddReading(false);
+                                setReadingValueInput('');
+                                setActivePatientId(null);
+                            }}
+                        >
+                            {t('cancel')}
+                        </Button>
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            fullWidth
+                            onClick={() => {
+                                const val = parseFloat(readingValueInput);
+                                if (isNaN(val)) return;
+                                updatePatientReading(activePatientId, val);
+                                setShowAddReading(false);
+                                setReadingValueInput('');
+                                setActivePatientId(null);
+                            }}
+                        >
+                            {t('save')}
+                        </Button>
+                    </div>
+                </Card>
+            )}
         </div>
     );
 }
