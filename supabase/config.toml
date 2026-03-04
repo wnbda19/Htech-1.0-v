@@ -1,0 +1,3 @@
+# Supabase auth configuration
+# Disable email confirmation so users can sign up with email+password without confirming
+email_provider = { email = true, email_confirm = false }
