@@ -7,9 +7,17 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build output
 dist
 dist-ssr
+
+# Environment variables (NEVER commit these)
+.env
+.env.local
+.env.*.local
 *.local
 
 # Editor directories and files
@@ -23,4 +31,18 @@ dist-ssr
 *.sln
 *.sw?
 
+# Vercel
 .vercel
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
+# OS files
+Thumbs.db
+
+# Installers / binaries
+*.msi
+*.exe
+*.dmg
+*.pkg

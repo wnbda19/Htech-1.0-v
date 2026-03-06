@@ -1,302 +1,229 @@
-# Htech - Diabetes Management App
+# 🩺 Htech — Glucose Monitoring App
 
-A modern React-based diabetes management application built with TypeScript, Vite, and Supabase.
+> A modern, bilingual (English/Arabic) diabetes glucose monitoring web application for both patients and caregivers, powered by React, TypeScript, Vite, and Supabase.
 
-**Live:** https://daibeieieieieie.vercel.app
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://daibeieieieieie.vercel.app)
+[![License](https://img.shields.io/badge/License-Private-red?style=for-the-badge)]()
+[![Version](https://img.shields.io/badge/Version-1.0.0-blue?style=for-the-badge)]()
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
+[![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
 
 ---
 
-## 📋 Project Overview
+## 📋 Table of Contents
 
-Htech is a comprehensive diabetes tracking and management application that helps users:
-- Log blood glucose readings
-- Track glucose trends with charts
-- Manage caregivers
-- Request doctor consultations
-- Switch between languages (English/Arabic)
-- Manage authentication securely
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Available Scripts](#available-scripts)
+- [Pages & Components](#pages--components)
+- [State Management](#state-management)
+- [Database Schema](#database-schema)
+- [Internationalization (i18n)](#internationalization-i18n)
+- [Glucose Thresholds](#glucose-thresholds)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+- [Changelog](#changelog)
+
+---
+
+## 🌟 Overview
+
+**Htech** is a full-stack glucose monitoring progressive web app designed for:
+
+- **Patients** — log, track, and visualize their blood glucose readings over time.
+- **Caregivers** — manage multiple patients, log readings on their behalf, and monitor health trends.
+- **Doctors (AI Assistant)** — an in-app AI chat that answers diabetes-related medical questions.
+
+The app supports **English and Arabic** (RTL) with automatic layout flipping, and stores all data securely in **Supabase** with Row-Level Security (RLS) so each user only ever sees their own data.
+
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---|---|
+| 🔐 **Authentication** | Email + password sign-up / sign-in via Supabase Auth |
+| 📊 **Glucose Dashboard** | Real-time chart of the last 20 readings with trend line |
+| ➕ **Log Readings** | Add glucose readings with meal context (fasting, after meal, etc.) |
+| 👨‍⚕️ **Caregiver Dashboard** | Manage multiple patients, track their readings and status |
+| 🤖 **Ask a Doctor (AI)** | Conversational AI for diabetes-related medical queries |
+| 🌍 **Bilingual UI** | Full English & Arabic support with RTL layout |
+| 💾 **Persistent Storage** | All data stored in Supabase; survives page refresh |
+| 🔒 **Security (RLS)** | Row-Level Security ensures data isolation per user |
+| 📱 **Mobile-First** | Responsive bottom navigation, optimized for phones |
+| ⚡ **Status Indicators** | Color-coded glucose status (low / normal / high / critical) |
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend Framework:** React 19.2.0 with TypeScript 5.6
-- **Build Tool:** Vite 7.3.1
-- **Styling:** Tailwind CSS with custom `htech-*` theme
-- **Backend:** Supabase (PostgreSQL + Auth)
-- **Deployment:** Vercel
-- **State Management:** React Hooks (useState, useContext)
+### Frontend
+| Technology | Version | Purpose |
+|---|---|---|
+| [React](https://react.dev) | 19 | UI framework |
+| [TypeScript](https://www.typescriptlang.org) | 5.9 | Type safety |
+| [Vite](https://vitejs.dev) | 7 | Build tool & dev server |
+| [React Router](https://reactrouter.com) | 7 | Client-side routing |
+| [Tailwind CSS](https://tailwindcss.com) | 3 | Utility-first styling |
+
+### Backend / BaaS
+| Technology | Purpose |
+|---|---|
+| [Supabase](https://supabase.com) | PostgreSQL database, Auth, RLS |
+| [Firebase Data Connect](https://firebase.google.com) | Optional GraphQL data layer |
+
+### Notable Libraries
+| Library | Purpose |
+|---|---|
+| `canvas-confetti` | Celebration animation on reading log |
+| `lottie-react` | Animated illustrations |
+| `mdi-react` | Material Design Icons |
+| `sweetalert2` | Elegant alert dialogs |
+| `uuid` | Unique ID generation |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-daibeieieieieie/
+Htech-1.0-v/
+├── public/                  # Static assets
+│   └── vite.svg
 ├── src/
-│   ├── App.tsx                 # Main app component & routing
-│   ├── main.tsx                # Entry point
-│   ├── index.css               # Global styles
-│   ├── components/             # Reusable UI components
-│   │   ├── Button.tsx
-│   │   ├── Card.tsx
-│   │   ├── GlucoseChart.tsx
-│   │   ├── DangerAlert.tsx
-│   │   ├── BottomNav.tsx
+│   ├── components/          # Reusable UI components
+│   │   ├── BottomNav.tsx    # Mobile bottom navigation bar
+│   │   ├── Button.tsx       # Styled button component
+│   │   ├── Card.tsx         # Surface/card container
+│   │   ├── DangerAlert.tsx  # Critical glucose alert banner
+│   │   ├── GlucoseChart.tsx # Canvas-based trend chart
+│   │   └── index.ts         # Component barrel export
+│   ├── contexts/            # React Context providers
+│   │   ├── AuthContext.tsx  # Auth state (user, session, signOut)
+│   │   ├── ReadingsContext.tsx # Glucose readings state & thresholds
+│   │   ├── LanguageContext.tsx # i18n language state
 │   │   └── index.ts
-│   ├── pages/                  # Page components
-│   │   ├── AuthPage.tsx        # Login/Sign-up
-│   │   ├── HomePage.tsx        # Main dashboard
-│   │   ├── LogReadingPage.tsx  # Log glucose readings
-│   │   ├── CaregiverPage.tsx   # Manage caregivers
-│   │   ├── AskDoctorPage.tsx   # Doctor consultation
-│   │   └── index.ts
-│   ├── contexts/               # React contexts
-│   │   ├── AuthContext.tsx     # Authentication state
-│   │   ├── ReadingsContext.tsx # Glucose readings state
-│   │   ├── LanguageContext.tsx # Language/i18n state
-│   │   └── index.ts
-│   ├── hooks/                  # Custom React hooks
-│   │   ├── useDiabetes.ts      # Diabetes data management
-│   │   ├── useLanguage.ts      # Language switching
+│   ├── hooks/               # Custom React hooks
+│   │   ├── useDiabetes.ts   # Glucose classification logic
+│   │   ├── useLanguage.ts   # Language switcher hook
 │   │   └── index.ts
 │   ├── lib/
-│   │   └── supabase.ts         # Supabase client config
-│   ├── types/                  # TypeScript types
-│   │   ├── common.ts
-│   │   ├── glucose.ts
+│   │   └── supabase.ts      # Supabase client initialization
+│   ├── locales/             # Translation files
+│   │   ├── en.json          # English strings
+│   │   └── ar.json          # Arabic strings
+│   ├── pages/               # Route-level page components
+│   │   ├── AuthPage.tsx     # Sign-in / Sign-up page
+│   │   ├── HomePage.tsx     # Patient dashboard (chart + readings)
+│   │   ├── LogReadingPage.tsx # Add new glucose reading form
+│   │   ├── AskDoctorPage.tsx  # AI doctor chat interface
+│   │   ├── CaregiverPage.tsx  # Caregiver patient management
 │   │   └── index.ts
-│   ├── utils/                  # Utilities
-│   │   └── storage.ts
-│   └── locales/                # Translations
-│       ├── en.json
-│       └── ar.json
-├── dataconnect/                # Firebase Data Connect
-│   ├── schema/
-│   │   └── schema.gql
+│   ├── types/               # TypeScript type definitions
+│   │   ├── glucose.ts       # GlucoseReading, MealContext types
+│   │   ├── common.ts        # Shared utility types
+│   │   └── index.ts
+│   ├── utils/
+│   │   └── storage.ts       # Local storage helpers
+│   ├── dataconnect-generated/ # Auto-generated Firebase Data Connect SDK
+│   ├── App.tsx              # Root layout with routing guard
+│   ├── main.tsx             # App entry point
+│   ├── index.css            # Global styles & Tailwind directives
+│   └── vite-env.d.ts        # Vite environment type declarations
+├── supabase/
+│   ├── schema.sql           # Full DB schema + RLS policies
+│   ├── seed_example_data.sql # Example seed data for development
+│   └── config.toml          # Local Supabase CLI config
+├── dataconnect/             # Firebase Data Connect config
+│   ├── dataconnect.yaml
+│   ├── schema/schema.gql
 │   └── example/
-│       ├── queries.gql
-│       └── mutations.gql
-├── supabase/                   # Supabase config
-│   ├── config.toml
-│   └── schema.sql
-├── public/                     # Static assets
-├── dist/                       # Production build output
-├── .vercel/                    # Vercel deployment config
-├── vite.config.ts
-├── tsconfig.json
+├── .gitignore
+├── eslint.config.js
+├── firebase.json
+├── index.html               # HTML shell
 ├── package.json
-└── firebase.json
+├── tsconfig.json
+├── tsconfig.app.json
+└── vite.config.ts           # Vite configuration
 ```
-
----
-
-## 🔐 Authentication System
-
-### Overview
-- **Type:** Email + Password authentication
-- **Provider:** Supabase
-- **Email Confirmation:** Disabled (immediate account activation)
-- **Session Management:** Automatic with Supabase
-
-### Sign-Up Flow
-1. User enters email and password
-2. User confirms password (must match)
-3. Password validated (minimum 6 characters)
-4. Account created in Supabase
-5. User can sign in immediately
-
-### Sign-In Flow
-1. User enters email and password
-2. Supabase authenticates credentials
-3. Session token received
-4. User redirected to app
-
-### Password Requirements
-- Minimum 6 characters
-- Must match confirmation on sign-up
-- Case-sensitive
-
----
-
-## 📄 Key Components
-
-### AuthPage (`src/pages/AuthPage.tsx`)
-Handles authentication UI with sign-up/sign-in toggle.
-
-**Features:**
-- Mode toggle: "Sign In" / "Sign Up" buttons
-- Email input field
-- Password input field
-- Confirm Password field (sign-up only)
-- Error/success messaging
-- Loading state during auth
-
-**State Management:**
-```tsx
-const [email, setEmail] = useState('');
-const [password, setPassword] = useState('');
-const [confirmPassword, setConfirmPassword] = useState('');
-const [isSigningUp, setIsSigningUp] = useState(false);
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState<string | null>(null);
-const [successMsg, setSuccessMsg] = useState<string | null>(null);
-```
-
-### AuthContext (`src/contexts/AuthContext.tsx`)
-Global authentication state provider.
-
-**Exports:**
-- `useAuth()` hook
-- `user` - Current user object
-- `session` - Auth session
-- `isLoading` - Auth loading state
-- `signOut()` - Sign out function
-
-### HomePage (`src/pages/HomePage.tsx`)
-Main dashboard for glucose tracking and overview.
-
-### LogReadingPage (`src/pages/LogReadingPage.tsx`)
-Interface for recording new glucose readings.
-
-### CaregiverPage (`src/pages/CaregiverPage.tsx`)
-Manage caregiver contacts and permissions.
-
-### AskDoctorPage (`src/pages/AskDoctorPage.tsx`)
-Send consultation requests to doctor.
-
----
-
-## 🎨 Theme & Styling
-
-Custom Tailwind CSS theme colors:
-
-```json
-{
-  "htech-bg": "Dark background",
-  "htech-surface": "Surface/card background",
-  "htech-border": "Border color",
-  "htech-text": "Primary text",
-  "htech-text-muted": "Secondary text",
-  "htech-primary": "Primary action color"
-}
-```
-
----
-
-## 🌍 Internationalization (i18n)
-
-Supports English and Arabic.
-
-**Files:**
-- `src/locales/en.json` - English strings
-- `src/locales/ar.json` - Arabic strings
-
-**Usage:**
-```tsx
-const { t, language, setLanguage } = useLanguage();
-<p>{t('greeting')}</p>
-```
-
----
-
-## 📦 Data Persistence & Supabase Tables
-
-All patient and reading data is stored in Supabase so that nothing is lost when
-navigating between pages or refreshing the browser. The existing status
-calculations, thresholds, and UI logic remain unchanged—they simply operate on
-state that is hydrated from the database.
-
-### Key Tables
-
-- `profiles` – standard Supabase auth profiles (real users)
-- `readings` – glucose readings linked to `profiles` by `user_id`
-- `caregiver_patients` – mock patients created by caregivers, keyed by text ID
-- `caregiver_readings` – readings for those mock patients
-
-### How it works
-
-1. **Fetching:** on app load (and every 30 s) the app queries all relevant
-   tables and reconstructs the in‑memory patient list.
-2. **Saving:** when a caregiver adds a patient or a reading, an insert is made
-to the corresponding table immediately.
-3. **Status logic:** unchanged from before; averages and color codes are
-recomputed on the client using the fetched data.
-
-### Development Notes
-
-- Supabase RLS policies are configured in `supabase/schema.sql` (look for the
-  `caregiver_*` tables).
-- No additional UI components were added – persistence is entirely behind the
-scenes in `src/pages/CaregiverPage.tsx`.
-- To test locally, make sure your `.env.local` points to a valid Supabase
-  project and run the provided migrations (see `supabase/schema.sql`).
-
-Persistence ensures a seamless experience: changes remain visible after
-refreshing or leaving the page.
-
----
-
-## 🔐 Session & Authentication Requirements
-
-### Session Behavior
-- On every app load, any existing browser session is automatically cleared.
-- Users **must** authenticate via sign-up or sign-in before accessing the app.
-- No data is stored or accessible without explicit authentication.
-- Sessions are managed by Supabase Auth; logout clears the session token.
-
-### Security Implications
-- Row-Level Security (RLS) policies ensure each caregiver sees only their own
-  patients and readings.
-- Each reading in the database is linked to the authenticated user's ID.
-- Patient data (phone, diabetes type) is stored against the caregiver's account.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Supabase project
 
-### Installation
+- **Node.js** 18 or higher
+- **npm** (included with Node.js)
+- A **Supabase** project (free tier works)
 
-1. **Clone/Navigate to project:**
-   ```bash
-   cd daibeieieieieie
-   ```
+### 1. Clone the repository
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+```bash
+git clone https://github.com/wnbda19/Htech-1.0-v.git
+cd Htech-1.0-v
+```
 
-3. **Configure Supabase:**
-   - Create `.env.local` in project root:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+### 2. Install dependencies
 
-4. **Start development server:**
-   ```bash
-   npm run dev
-   ```
-   Opens at `http://localhost:5173`
+```bash
+npm install
+```
+
+### 3. Set up environment variables
+
+Create a `.env.local` file in the project root:
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+> Find these values in your Supabase project → **Settings → API**.
+
+### 4. Set up the database
+
+Run the SQL schema in your Supabase SQL editor:
+
+```bash
+# Copy contents of supabase/schema.sql and run in Supabase dashboard
+# Or use the Supabase CLI:
+supabase db push
+```
+
+### 5. Start the development server
+
+```bash
+npm run dev
+```
+
+The app will be available at **http://localhost:5173**
 
 ---
 
-## 📦 Available Scripts
+## 🔐 Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_SUPABASE_URL` | ✅ Yes | Your Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | ✅ Yes | Your Supabase anonymous public key |
+
+> ⚠️ **Never commit `.env.local`** to version control. It is already listed in `.gitignore`.
+
+---
+
+## 📜 Available Scripts
 
 ```bash
-# Install dependencies
-npm install
-
-# Start development server (hot reload)
+# Start development server with hot reload
 npm run dev
 
-# Type-check with TypeScript
+# Type-check with TypeScript (no emit)
 npm run tsc
 
 # Build for production
@@ -311,202 +238,311 @@ npm run lint
 
 ---
 
+## 📱 Pages & Components
+
+### Pages
+
+#### `AuthPage` — `/`
+- Sign-in and Sign-up toggle with email + password.
+- Password confirmation field shown only in sign-up mode.
+- Validates password length (≥ 6 characters) and match before submission.
+- Connects to Supabase Auth (`signUp`, `signInWithPassword`).
+
+#### `HomePage` — `/`
+- Patient's main dashboard shown after authentication.
+- Displays the **GlucoseChart** (last 20 readings as a smooth canvas curve).
+- Period filter buttons: Today / 7 Days / 30 Days.
+- **Stats Cards**: Min, Max, Average glucose values.
+- **Recent Readings** list with color-coded status indicators.
+- Quick-action button → navigates to LogReadingPage.
+
+#### `LogReadingPage` — `/log`
+- Form to add a new glucose reading (mg/dL value + meal context).
+- Meal context options: Fasting, Before Meal, After Meal, Bedtime, Night, Other.
+- Saves to Supabase `readings` table.
+- Confetti animation on successful submit.
+
+#### `AskDoctorPage` — `/ask`
+- AI-powered chat interface for diabetes-related questions.
+- Maintains conversation history in local state.
+- RTL-aware input layout for Arabic users.
+
+#### `CaregiverPage` — `/caregiver`
+- Lists all patients managed by the authenticated caregiver.
+- Add new patients with: Name, Patient ID, Phone, Diabetes Type.
+- Duplicate patient ID check before insert.
+- Log glucose readings for individual patients.
+- Color-coded glucose status badges per patient.
+- Data persisted to `caregiver_patients` and `caregiver_readings` tables in Supabase.
+- Auto-refreshes every 30 seconds.
+
+### Key Components
+
+#### `GlucoseChart`
+Custom HTML5 Canvas renderer (no chart library dependency):
+- Smooth bezier curve between data points.
+- Gradient fill under the line.
+- Safe range band (70–180 mg/dL) highlighted in teal.
+- Dashed threshold lines at 70 and 180.
+- RTL-aware (mirrors the X axis for Arabic users).
+- Color-coded dots: teal = in range, red = out of range.
+
+#### `BottomNav`
+- Mobile-style bottom navigation with 4 tabs: Home, Log, Ask Doctor, Caregiver.
+- Active tab highlighted in teal.
+- Language toggle (EN/AR) button to switch locale.
+
+#### `DangerAlert`
+- Full-width critical alert banner shown when glucose is dangerously low or high.
+
+#### `Button` / `Card`
+- Reusable design-system primitives with `variant` props (`primary`, `secondary`, `ghost`).
+
+---
+
+## 🗂️ State Management
+
+The app uses **React Context** for global state with three providers:
+
+### `AuthContext`
+
+```tsx
+interface AuthContextValue {
+  user: User | null;          // Current Supabase user
+  session: Session | null;    // Current auth session
+  isLoading: boolean;         // Auth initialization state
+  signOut: () => Promise<void>;
+}
+```
+
+**Key behavior:** On every page load, any existing browser session is deliberately cleared, forcing the user to re-authenticate each visit. This is intentional behavior requested by design.
+
+### `ReadingsContext`
+
+```tsx
+interface ReadingsContextValue {
+  readings: GlucoseReading[];
+  addReading: (value: number, mealContext: MealContext) => Promise<void>;
+  getReadings: () => Promise<void>;
+}
+
+// Thresholds used across the app:
+export const GLUCOSE_THRESHOLDS = {
+  dangerouslyLow: 54,   // mg/dL
+  normalMin: 70,        // mg/dL
+  normalMax: 180,       // mg/dL
+  dangerouslyHigh: 250, // mg/dL
+};
+```
+
+### `LanguageContext`
+
+```tsx
+interface LanguageContextValue {
+  language: 'en' | 'ar';
+  t: (key: string) => string;   // Translate a key
+  isRTL: boolean;               // True when language is Arabic
+  setLanguage: (lang: 'en' | 'ar') => void;
+}
+```
+
+Usage example:
+```tsx
+const { t, language, setLanguage, isRTL } = useLanguage();
+<p dir={isRTL ? 'rtl' : 'ltr'}>{t('add_reading')}</p>
+```
+
+---
+
 ## 🗄️ Database Schema
 
-### Users Table
-- `id` (UUID primary key)
-- `email` (unique)
-- `password` (hashed)
-- `created_at` (timestamp)
+All tables are in PostgreSQL (Supabase) with Row-Level Security enabled.
 
-### Glucose Readings Table
-- `id` (UUID primary key)
-- `user_id` (foreign key)
-- `reading_value` (mg/dL)
-- `timestamp` (reading time)
-- `created_at` (record creation time)
+### `profiles`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `UUID` | Primary key, references `auth.users` |
+| `email` | `TEXT` | Unique |
+| `diabetes_type` | `TEXT` | `'T1'` or `'T2'` |
+| `created_at` | `TIMESTAMPTZ` | Auto-set |
+| `updated_at` | `TIMESTAMPTZ` | Auto-set |
 
-### Caregivers Table
-- `id` (UUID primary key)
-- `user_id` (foreign key)
-- `caregiver_email` (contact)
-- `relationship` (parent, spouse, etc.)
+### `readings`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `UUID` | Primary key |
+| `user_id` | `UUID` | FK → `profiles.id` |
+| `value` | `NUMERIC` | Glucose value in mg/dL |
+| `timestamp` | `TIMESTAMPTZ` | When reading was taken |
+| `meal_context` | `TEXT` | `fasting`, `before_meal`, `after_meal`, `bedtime`, `night`, `other` |
+| `note` | `TEXT` | Optional note |
 
----
+### `caregiver_patients`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `TEXT` | Primary key (custom patient ID string) |
+| `caregiver_id` | `UUID` | FK → `profiles.id` |
+| `name` | `TEXT` | Patient display name |
+| `phone` | `TEXT` | Contact phone |
+| `diabetes_type` | `TEXT` | `TYPE_1` or `TYPE_2` |
+| `created_at` | `TIMESTAMPTZ` | Auto-set |
 
-## 🔄 State Management Flow
-
-### Auth State
-```
-AuthContext
-├── user (current user)
-├── session (auth token)
-├── isLoading (auth status)
-└── signOut() (logout)
-```
-
-### Readings State
-```
-ReadingsContext
-├── readings[] (glucose history)
-├── addReading() (log new reading)
-└── getReadings() (fetch from DB)
-```
-
-### Language State
-```
-LanguageContext
-├── language (en|ar)
-├── t() (translate function)
-└── setLanguage() (switch language)
-```
+### `caregiver_readings`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `UUID` | Primary key |
+| `patient_id` | `TEXT` | FK → `caregiver_patients.id` |
+| `value` | `NUMERIC` | Glucose value in mg/dL |
+| `timestamp` | `TIMESTAMPTZ` | Auto-set |
 
 ---
 
-## 📊 Glucose Chart
+## 🌍 Internationalization (i18n)
 
-The GlucoseChart component displays glucose readings over time using chart.js.
+Supported languages: **English (`en`)** and **Arabic (`ar`)**.
 
-**Features:**
-- Time series visualization
-- Trend analysis
-- Customizable date range
-- Mobile responsive
+Translation files:
+- `src/locales/en.json`
+- `src/locales/ar.json`
+
+Switch language at runtime via the **globe icon** in the bottom navigation.  
+Arabic mode enables full **RTL layout** (`dir="rtl"`) automatically.
+
+---
+
+## 🩸 Glucose Thresholds
+
+| Status | Range (mg/dL) | Color |
+|---|---|---|
+| 🔴 Dangerously Low | < 54 | Red |
+| 🟡 Low | 54 – 69 | Yellow |
+| 🟢 Normal | 70 – 180 | Teal/Green |
+| 🟠 High | 181 – 249 | Orange |
+| 🔴 Dangerously High | ≥ 250 | Red |
 
 ---
 
 ## 🚢 Deployment
 
-### Vercel
+The app is deployed on **Vercel**.
 
-**Current Status:** Live at https://daibeieieieieie.vercel.app
+**Live URL:** [https://daibeieieieieie.vercel.app](https://daibeieieieieie.vercel.app)
 
-**Deploy Process:**
-1. Build project: `npm run build`
-2. Generates `dist/` folder
-3. Upload to Vercel: `vercel --prod`
-4. Automatic preview on every push
+### Deploy to Vercel
 
-**Environment Variables (Vercel):**
-```env
-VITE_SUPABASE_URL=production_url
-VITE_SUPABASE_ANON_KEY=production_key
+```bash
+# Build first
+npm run build
+
+# Deploy via Vercel CLI
+vercel --prod
+```
+
+### Required Vercel Environment Variables
+
+Set these in your Vercel project → **Settings → Environment Variables**:
+
+```
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 ---
 
-## 🐛 Troubleshooting
+## 🔧 Troubleshooting
 
-### Build Errors
-- Clear `node_modules`: `rm -r node_modules && npm install`
-- Clear Vite cache: `rm -r dist/ && npm run build`
+### Build fails
 
-### Type Errors
-- Run: `npm run tsc` to check all TypeScript errors
-- Check `tsconfig.json` for config
+```bash
+# Clear node_modules and reinstall
+Remove-Item -Recurse -Force node_modules
+npm install
 
-### Auth Issues
-- Verify Supabase credentials in `.env.local`
-- Check Supabase Auth settings (email confirmation should be disabled)
-- Confirm user exists in Supabase Auth dashboard
+# Clear Vite dist cache
+Remove-Item -Recurse -Force dist
+npm run build
+```
 
-### Styling Issues
-- Tailwind CSS cache: `npm run build -- --no-cache`
-- Check `tailwind.config.js` for custom theme
+### TypeScript errors
 
----
+```bash
+npm run tsc
+# Review tsconfig.json for compiler options
+```
 
-## 📝 Recent Changes (March 2026)
+### Auth issues
 
-### Version 1.2.0 - Password Confirmation
-- Added password confirmation field to sign-up form
-- Password validation (minimum 6 characters)
-- Confirm password must match
-- Only shows confirmation field in sign-up mode
+- Verify `.env.local` has correct Supabase URL and anon key.
+- In Supabase Dashboard → **Auth → Settings**, disable **Email Confirmation**.
+- Check `supabase/config.toml`: ensure `email_confirm = false`.
+- Confirm user exists in **Supabase Auth → Users**.
 
-### Version 1.1.0 - Sign-Up/Sign-In Toggle
-- Added mode toggle buttons (Sign In / Sign Up)
-- Separate auth flows for sign-up and sign-in
-- Clear UI for switching between modes
+### Supabase RLS issues
 
-### Version 1.0.0 - Initial Release
-- Email + Password authentication
-- Removed email confirmation requirement
-- Removed mock session logic
-- Removed rate-limit Wi-Fi/cellular alerts
+- Run all SQL from `supabase/schema.sql` in the SQL editor.
+- Ensure RLS is enabled on all tables.
+- Verify policies allow `SELECT`, `INSERT`, `UPDATE`, `DELETE` for the authenticated user.
 
----
+### Styling issues
 
-## 🔧 Configuration Files
-
-### `vite.config.ts`
-Vite build configuration.
-
-### `tsconfig.json`
-TypeScript compiler options.
-
-### `supabase/config.toml`
-Local Supabase development configuration.
-- `email_confirm = false` - No email verification required
-
-### `supabase/schema.sql`
-Database schema with tables and policies.
+```bash
+# Rebuild with no cache
+npm run build -- --no-cache
+```
 
 ---
 
-## 📚 Dependencies
+## 📅 Changelog
 
-### Main
-- `react` - UI framework
-- `react-dom` - DOM rendering
-- `react-router-dom` - Routing
-- `@supabase/supabase-js` - Backend
-- `tailwindcss` - Styling
-- `chart.js` - Charting
+### v1.2.0 — March 2026
+- Added **password confirmation** field on sign-up form.
+- Password validation: minimum 6 characters.
+- Confirm password must match before account creation.
 
-### Dev
-- `typescript` - Type safety
-- `vite` - Build tool
-- `eslint` - Code linting
+### v1.1.0 — March 2026
+- Added **Sign In / Sign Up mode toggle** on the Auth page.
+- Separate auth flows with clear UI switching.
+
+### v1.0.0 — March 2026 (Initial Release)
+- Email + Password authentication via Supabase Auth.
+- Patient dashboard with glucose chart and readings history.
+- Caregiver dashboard with patient management.
+- Ask Doctor AI chat interface.
+- Bilingual support: English & Arabic (RTL).
+- Full Supabase data persistence with RLS.
+- Deployed to Vercel.
 
 ---
 
-## 🤝 Contributing
+## 🧩 Adding New Features — Checklist
 
-This is a personal project. For modifications:
+When implementing new features:
 
-1. Create feature branch: `git checkout -b feature/name`
-2. Make changes and test locally
-3. Build for production: `npm run build`
-4. Deploy via Vercel CLI: `vercel --prod`
+- [ ] Define types in `src/types/`
+- [ ] Add component to `src/components/` or page to `src/pages/`
+- [ ] Wire state management via context or custom hook
+- [ ] Add translation keys to `src/locales/en.json` **and** `src/locales/ar.json`
+- [ ] Update database schema in `supabase/schema.sql` if needed
+- [ ] Test locally: `npm run dev`
+- [ ] Type-check: `npm run tsc`
+- [ ] Build: `npm run build`
+- [ ] Deploy: `vercel --prod`
+- [ ] Verify on production URL
+
+---
+
+## 📞 Contact & Support
+
+- **Developer:** Mohammed
+- **Live App:** [https://daibeieieieieie.vercel.app](https://daibeieieieieie.vercel.app)
+- **Repository:** [https://github.com/wnbda19/Htech-1.0-v](https://github.com/wnbda19/Htech-1.0-v)
 
 ---
 
 ## 📄 License
 
-Private project.
+Private project. All rights reserved.
 
 ---
 
-## 📧 Contact & Support
-
-- **App:** https://daibeieieieieie.vercel.app
-- **Developer:** Mohammed
-
----
-
-## ✅ Checklist for New Features
-
-When adding features:
-- [ ] Update types in `src/types/`
-- [ ] Add component to `src/components/` or `src/pages/`
-- [ ] Add state management (context or hook)
-- [ ] Update translations in `src/locales/`
-- [ ] Test on localhost: `npm run dev`
-- [ ] Build: `npm run build`
-- [ ] Deploy: `vercel --prod`
-- [ ] Test on production
-
----
-
-**Last Updated:** March 4, 2026
+*Last Updated: March 2026*
